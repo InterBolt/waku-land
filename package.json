@@ -1,0 +1,57 @@
+{
+  "name": "waku-land",
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@8.15.0",
+  "private": true,
+  "scripts": {
+    "act": "(act --help >/dev/null 2>&1) && act push -s ENV=\"$(cat .env)\"",
+    "start": "NODE_ENV=production node --no-warnings serve/index.mjs",
+    "dev": "NODE_ENV=development node --no-warnings serve/index.mjs",
+    "dev:setup": "npm run s:pull",
+    "dev:hard-reset": "rm -rf node_modules deployments.json deployments pnpm-lock.yaml && pnpm install",
+    "waku:build": "waku build",
+    "waku:dev": "waku dev",
+    "s:sync-versions": "npx tsx scripts/sync-versions.ts",
+    "s:pull": "npx tsx scripts/pull.ts",
+    "s:dns": "npx tsx scripts/dns.ts",
+    "cd:build": "npm run s:pull && npm run waku:build",
+    "cd:dns": "npm run s:dns",
+    "verify": "npm run dev:hard-reset && npm run cd:build && npm run cd:prep-fly && NODE_ENV=production node --no-warnings serve/index.mjs"
+  },
+  "prettier": {
+    "singleQuote": true
+  },
+  "dependencies": {
+    "app-root-path": "^3.1.0",
+    "autoprefixer": "10.4.17",
+    "dotenv": "^16.4.4",
+    "express": "^4.18.2",
+    "http-proxy-middleware": "^2.0.6",
+    "ky": "^1.2.0",
+    "morgan": "^1.10.0",
+    "react": "18.3.0-canary-14fd9630e-20240213",
+    "react-dom": "18.3.0-canary-14fd9630e-20240213",
+    "react-server-dom-webpack": "18.3.0-canary-14fd9630e-20240213",
+    "signale": "^1.4.0",
+    "simple-git": "^3.22.0",
+    "tailwindcss": "3.4.1",
+    "tsx": "^4.7.1",
+    "typescript": "5.3.3",
+    "usehooks-ts": "^2.14.0",
+    "vite": "^5.1.3",
+    "waku": "^0.19.3"
+  },
+  "devDependencies": {
+    "@flydotio/dockerfile": "^0.5.2",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.17",
+    "@types/react": "18.2.55",
+    "@types/react-dom": "18.2.19",
+    "@types/signale": "^1.4.7"
+  },
+  "dockerfile": {
+    "cache": "",
+    "distroless": true
+  }
+}

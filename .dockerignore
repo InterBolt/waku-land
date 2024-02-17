@@ -1,0 +1,11 @@
+node_modules
+dist
+.env
+.env*
+*.tsbuildinfo
+.cache
+.DS_Store
+*.pem
+.github
+.git
+reference.txt

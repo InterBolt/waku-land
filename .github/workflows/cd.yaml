@@ -1,0 +1,35 @@
+name: CD
+
+on:
+  # schedule:
+  #   - cron: '0 */6 * * *'
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: 'ubuntu-latest'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'pnpm'
+          cache-dependency-path: '**/pnpm-lock.yaml'
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Env
+        run: |
+          chmod +x scripts/env.sh;
+          ENV="$(echo ${{ secrets.ENV }})" scripts/env.sh >/dev/null 2>&1;
+          pnpm install --frozen-lockfile;
+      - name: Build
+        run: |
+          source .env && pnpm run cd:build;
+      - name: Deploy Fly
+        # load env vars, install deps, create fly.toml, and deploy
+        run: |
+          source .env && flyctl deploy --local-only -t "$FLY_ACCESS_TOKEN";
+      - name: DNS
+        run: source .env && pnpm run cd:dns;

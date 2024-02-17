@@ -1,0 +1,13 @@
+node_modules
+dist
+.env*
+*.tsbuildinfo
+.cache
+.DS_Store
+*.pem
+deployments.json
+deployments/
+reference.txt
+
+.secrets*
+.secrets

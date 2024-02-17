@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "resolveJsonModule": true,
+    "strict": true,
+    "target": "esnext",
+    "downlevelIteration": true,
+    "esModuleInterop": true,
+    "module": "nodenext",
+    "skipLibCheck": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "types": ["react/experimental"],
+    "jsx": "react-jsx"
+  },
+  "include": ["src", "./deployments.json"],
+  "exclude": ["node_modules", "scripts"]
+}
