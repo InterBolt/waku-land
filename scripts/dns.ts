@@ -4,16 +4,17 @@ import { Deployment, getDeployments } from './utils';
 import dotenv from 'dotenv';
 import appRootPath from 'app-root-path';
 import { join } from 'node:path';
+import { readFileSync } from 'node:fs';
 
-dotenv.config({
-  path: join(appRootPath.path, '.env'),
-});
+const ENV = dotenv.parse(readFileSync(join(appRootPath.path, '.env')));
+// console.log(ENV);
+// process.exit();
 
 // Constants, env vars, and types
 const DNS_TAG = 'source:waku-land';
 const API_BASE = `https://api.cloudflare.com/client/v4`;
-const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN as string;
-const CLOUDFLARE_ZONE_ID = process.env.CLOUDFLARE_ZONE_ID as string;
+const CLOUDFLARE_API_TOKEN = ENV.CLOUDFLARE_API_TOKEN as string;
+const CLOUDFLARE_ZONE_ID = ENV.CLOUDFLARE_ZONE_ID as string;
 if (!CLOUDFLARE_API_TOKEN) {
   throw new Error('env.CLOUDFLARE_API_TOKEN is not set');
 }
@@ -21,12 +22,15 @@ if (!CLOUDFLARE_ZONE_ID) {
   throw new Error('env.CLOUDFLARE_ZONE_ID is not set');
 }
 
+console.log(CLOUDFLARE_API_TOKEN, CLOUDFLARE_ZONE_ID);
+
 type DNSRecordCreateBody = {
   content: string;
   name: string;
   type: string;
   proxied: boolean;
   comment: string;
+  ttl: number;
 };
 
 type DNSRecord = {
@@ -50,7 +54,6 @@ const apiList = async () =>
     .get(`${API_BASE}/zones/${CLOUDFLARE_ZONE_ID}/dns_records`, {
       credentials: 'include',
       headers: {
-        'Content-Type': 'application/json',
         Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
       },
     })
@@ -90,6 +93,7 @@ const utilFormatDnsCreateRecord = (
     type: 'A',
     proxied: true,
     comment: DNS_TAG,
+    ttl: 300,
   };
 };
 
@@ -107,7 +111,6 @@ const utilGetChangeset = async () => {
     });
     throw new Error('Failed to list DNS records');
   }
-  console.log(listApiResponse.result);
   // Every dns record should have a specific type of comment so that we don't fuck with valid records
   const deploymentDnsRecords = listApiResponse.result.filter((record) =>
     record.comment?.includes(DNS_TAG)
@@ -161,8 +164,9 @@ const utilHandleRejects = async <Record extends any>(
   const results = await Promise.allSettled(promises);
   const failed: Record[] = [];
   for (const index in results) {
-    if (results[index].status === 'rejected') {
-      console.log(results[index]);
+    const result = results[index];
+    if (result.status === 'rejected') {
+      console.log(result.reason);
       failed.push(records[index]);
     }
   }

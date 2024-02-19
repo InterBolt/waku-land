@@ -1,5 +1,6 @@
-import { Screen } from './Screen.js';
 import deployments from '../../deployments.json';
+import { HomeScreen } from './ClientComponents.js';
+import { getSourceUrl, getUrl } from './utils.js';
 
 export const HomePage = ({
   searchParams,
@@ -7,5 +8,9 @@ export const HomePage = ({
   searchParams: URLSearchParams;
 }) => {
   const flyName = searchParams.get('deployment') || deployments?.[0]?.flyName;
-  return <Screen flyName={flyName as string} />;
+  const deployment = deployments.find((d) => d.flyName === flyName);
+  if (!deployment) throw new Error('Deployment not found');
+  const url = getUrl(deployment);
+  const sourceUrl = getSourceUrl(deployment);
+  return <HomeScreen url={url} sourceUrl={sourceUrl} deployment={deployment} />;
 };

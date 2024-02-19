@@ -41,9 +41,12 @@ const installEachExamplesDeps = async () => {
   const promises = [];
   for (const dir of dirs) {
     promises.push(
-      exec(`rm -rf node_modules dist && pnpm install`, {
-        cwd: join(pathToDeployments, dir),
-      })
+      exec(
+        `rm -rf node_modules dist && pnpm install && pnpm add waku@file:../../waku/packages/waku/`,
+        {
+          cwd: join(pathToDeployments, dir),
+        }
+      )
     );
   }
   const installationResults = await Promise.all(promises);
@@ -116,7 +119,7 @@ const generateDeploymentsArtifact = async () => {
     }
     deployments.push({
       dir,
-      path: join(pathToDeployments, dir),
+      path: join('deployments', dir),
       ssr,
       flyName: flyName,
       flyUrl: `https://${flyName}.waku.land`,
@@ -146,7 +149,7 @@ const createExamples = async () => {
   logger.info(`Cloning waku repository...`);
   await git.clone('https://github.com/dai-shi/waku.git');
 
-  const pathToWaku = join(tempWakuDir, 'waku');
+  const pathToTmpWaku = join(tempWakuDir, 'waku');
   const pathToWakuExamples = join(tempWakuDir, 'waku', 'examples');
   if (!existsSync(pathToWakuExamples)) {
     throw new Error(
@@ -157,21 +160,29 @@ const createExamples = async () => {
     mkdirSync(pathToDeployments);
   }
 
-  logger.warn(`Overwriting ${wakuDeploymentsOutput} in 2 seconds...`);
+  logger.warn(`Overwriting deployments in 2 seconds...`);
   await new Promise((resolve) => setTimeout(resolve, 2000));
   await cp(pathToWakuExamples, pathToDeployments, {
     recursive: true,
     force: true,
   });
-
-  const versions = await getVersions(pathToWaku);
-
+  const pathToFinalWaku = join(appRootPath.path, 'waku');
+  logger.warn(`Overwriting waku in 2 seconds...`);
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  await cp(pathToTmpWaku, join(appRootPath.path, 'waku'), {
+    recursive: true,
+    force: true,
+  });
+  logger.info(`Installing waku dependencies and compiling...`);
+  await exec(`pnpm install && pnpm -r --filter='./packages/waku' run compile`, {
+    cwd: pathToFinalWaku,
+  });
+  const versions = await getVersions(pathToTmpWaku);
   logger.info(`Syncing local dependencies to waku examples...`);
   await exec(
     `pnpm i react@${versions.react}` +
       ` react-dom@${versions.reactDom}` +
       ` react-server-dom-webpack@${versions.reactServerDomWebpack}` +
-      ` waku@${versions.waku}` +
       ` @types/react@${versions.reactTypes}` +
       ` @types/react-dom@${versions.reactDomTypes}`,
     {
