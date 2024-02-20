@@ -5,20 +5,9 @@
   "packageManager": "pnpm@8.15.0",
   "private": true,
   "scripts": {
-    "act": "(act --help >/dev/null 2>&1) && act push -s ENV=\"$(cat .env)\"",
     "start": "NODE_ENV=production node --no-warnings serve/index.mjs",
     "dev": "NODE_ENV=development node --no-warnings serve/index.mjs",
-    "dev:setup": "npm run s:pull",
-    "dev:hard-reset": "rm -rf node_modules deployments.json deployments waku pnpm-lock.yaml && pnpm install",
-    "waku:build": "waku build",
-    "waku:dev": "waku dev",
-    "s:sync-versions": "npx tsx scripts/sync-versions.ts",
-    "s:pull": "npx tsx scripts/pull.ts",
-    "s:dns": "npx tsx scripts/dns.ts",
-    "cd:build": "npm run s:pull && npm run waku:build",
-    "cd:dns": "npm run s:dns",
-    "verify": "npm run dev:hard-reset && npm run cd:build && NODE_ENV=production node --no-warnings serve/index.mjs",
-    "docker": "docker build --no-cache --tag 'image.wakuland' . && docker run -p 3000:3000 --detach \"image.wakuland\""
+    "dev:setup": "npx tsx scripts/pull.ts"
   },
   "prettier": {
     "singleQuote": true

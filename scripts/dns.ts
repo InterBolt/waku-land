@@ -7,8 +7,6 @@ import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
 
 const ENV = dotenv.parse(readFileSync(join(appRootPath.path, '.env')));
-// console.log(ENV);
-// process.exit();
 
 // Constants, env vars, and types
 const DNS_TAG = 'source:waku-land';
@@ -21,8 +19,6 @@ if (!CLOUDFLARE_API_TOKEN) {
 if (!CLOUDFLARE_ZONE_ID) {
   throw new Error('env.CLOUDFLARE_ZONE_ID is not set');
 }
-
-console.log(CLOUDFLARE_API_TOKEN, CLOUDFLARE_ZONE_ID);
 
 type DNSRecordCreateBody = {
   content: string;
@@ -166,7 +162,6 @@ const utilHandleRejects = async <Record extends any>(
   for (const index in results) {
     const result = results[index];
     if (result.status === 'rejected') {
-      console.log(result.reason);
       failed.push(records[index]);
     }
   }

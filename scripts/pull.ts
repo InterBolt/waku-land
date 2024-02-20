@@ -1,12 +1,15 @@
 import { join } from 'node:path';
 import { exec as execWithCallback } from 'node:child_process';
 import { promisify } from 'node:util';
-import { existsSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { cp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { simpleGit, SimpleGit } from 'simple-git';
 import appRootPath from 'app-root-path';
 import logger from 'signale';
-import { Deployment, THINGS_THAT_MIGHT_CHANGE, getVersions } from './utils';
+import dotenv from 'dotenv';
+import { Deployment, getVersions } from './utils';
+
+const ENV = dotenv.parse(readFileSync(join(appRootPath.path, '.env')));
 
 const skipIfExists = `${process.env.SKIP_IF_EXISTS}` === 'true';
 if (skipIfExists && existsSync(join(appRootPath.path, 'deployments.json'))) {
@@ -18,33 +21,39 @@ if (skipIfExists && existsSync(join(appRootPath.path, 'deployments.json'))) {
 
 const exec = promisify(execWithCallback);
 
-const wakuDeploymentsOutput = 'deployments';
-const tempWakuDir = '.temp-waku';
-const pathToTempWaku = join(appRootPath.path, tempWakuDir);
-const pathToDeployments = join(appRootPath.path, wakuDeploymentsOutput);
-const pathToDeploymentsData = join(appRootPath.path, 'deployments.json');
+const CANONICAL_REPO = 'https://github.com/dai-shi/waku.git';
+const WAKU_REPO = ENV.WAKU_REPO || 'https://github.com/dai-shi/waku.git';
+const TMP_DIR = '.temp-waku';
+const PATH_TMP = join(appRootPath.path, TMP_DIR);
+const PATH_DEPLOYMENTS = join(appRootPath.path, 'deployments');
+
+if (CANONICAL_REPO !== WAKU_REPO) {
+  logger.warn(
+    `Using an alternative git repo: ${WAKU_REPO}. Things might break.`
+  );
+}
 
 const cleanup = async () => {
-  if (existsSync(pathToTempWaku)) {
-    logger.warn(`Removing ${tempWakuDir} directory in 2 seconds...`);
+  if (existsSync(PATH_TMP)) {
+    logger.warn(`Removing ${TMP_DIR} directory in 2 seconds...`);
     await new Promise((resolve) => setTimeout(resolve, 2000));
-    await rm(tempWakuDir, {
+    await rm(TMP_DIR, {
       recursive: true,
       force: true,
     });
-    logger.info(`Removed ${tempWakuDir}`);
+    logger.info(`Removed ${TMP_DIR}`);
   }
 };
 
 const installEachExamplesDeps = async () => {
-  const dirs = await readdir(pathToDeployments);
+  const dirs = await readdir(PATH_DEPLOYMENTS);
   const promises = [];
   for (const dir of dirs) {
     promises.push(
       exec(
         `rm -rf node_modules dist && pnpm install && pnpm add waku@file:../../waku/packages/waku/`,
         {
-          cwd: join(pathToDeployments, dir),
+          cwd: join(PATH_DEPLOYMENTS, dir),
         }
       )
     );
@@ -58,12 +67,12 @@ const installEachExamplesDeps = async () => {
 };
 
 const buildEachExample = async () => {
-  const dirs = await readdir(pathToDeployments);
+  const dirs = await readdir(PATH_DEPLOYMENTS);
   const promises = [];
   for (const dir of dirs) {
     promises.push(
       exec(`pnpm run build`, {
-        cwd: join(pathToDeployments, dir),
+        cwd: join(PATH_DEPLOYMENTS, dir),
       })
     );
   }
@@ -88,21 +97,17 @@ const buildEachExample = async () => {
 };
 
 const generateDeploymentsArtifact = async () => {
-  const dirs = await readdir(pathToDeployments);
+  const dirs = await readdir(PATH_DEPLOYMENTS);
   const deployments: Array<Deployment> = [];
   let i = 0;
   for (const dir of dirs) {
     i++;
-    const pathToDeploymentExample = join(pathToDeployments, dir);
+    const pathToDeploymentExample = join(PATH_DEPLOYMENTS, dir);
     const packageJson = JSON.parse(
       await readFile(join(pathToDeploymentExample, 'package.json'), 'utf-8')
     );
-    const usesWakuCli = packageJson.scripts.start.startsWith(
-      `${THINGS_THAT_MIGHT_CHANGE.binCommand} `
-    );
-    const ssr = packageJson.scripts.start.includes(
-      ` ${THINGS_THAT_MIGHT_CHANGE.ssrFlag}`
-    );
+    const usesWakuCli = packageJson.scripts.start.startsWith(`waku `);
+    const ssr = packageJson.scripts.start.includes(` --with-ssr`);
     if (!usesWakuCli) {
       logger.warn(
         `The example ${dir} does not use waku cli, skipping it from serving`
@@ -123,46 +128,50 @@ const generateDeploymentsArtifact = async () => {
       ssr,
       flyName: flyName,
       flyUrl: `https://${flyName}.waku.land`,
-      ipv4: THINGS_THAT_MIGHT_CHANGE.ipv4,
+      ipv4: '149.248.203.169',
       servicePort: 8080 + i,
     });
   }
-  await writeFile(pathToDeploymentsData, JSON.stringify(deployments, null, 2));
+
+  await writeFile(
+    join(appRootPath.path, 'deployments.json'),
+    JSON.stringify(deployments, null, 2)
+  );
 };
 
 const createExamples = async () => {
   logger.info(`Initializing temp directory...`);
-  if (existsSync(pathToTempWaku)) {
+  if (existsSync(PATH_TMP)) {
     logger.info(`Doing initialization cleanup`);
     await cleanup();
   }
 
-  mkdirSync(pathToTempWaku);
+  mkdirSync(PATH_TMP);
 
   const git: SimpleGit = simpleGit({
-    baseDir: pathToTempWaku,
+    baseDir: PATH_TMP,
     binary: 'git',
     maxConcurrentProcesses: 6,
     trimmed: false,
   });
 
   logger.info(`Cloning waku repository...`);
-  await git.clone('https://github.com/dai-shi/waku.git');
+  await git.clone(WAKU_REPO);
 
-  const pathToTmpWaku = join(tempWakuDir, 'waku');
-  const pathToWakuExamples = join(tempWakuDir, 'waku', 'examples');
+  const pathToTmpWaku = join(TMP_DIR, 'waku');
+  const pathToWakuExamples = join(TMP_DIR, 'waku', 'examples');
   if (!existsSync(pathToWakuExamples)) {
     throw new Error(
       `The waku examples are not found in ${pathToWakuExamples} directory`
     );
   }
-  if (!existsSync(pathToDeployments)) {
-    mkdirSync(pathToDeployments);
+  if (!existsSync(PATH_DEPLOYMENTS)) {
+    mkdirSync(PATH_DEPLOYMENTS);
   }
 
   logger.warn(`Overwriting deployments in 2 seconds...`);
   await new Promise((resolve) => setTimeout(resolve, 2000));
-  await cp(pathToWakuExamples, pathToDeployments, {
+  await cp(pathToWakuExamples, PATH_DEPLOYMENTS, {
     recursive: true,
     force: true,
   });

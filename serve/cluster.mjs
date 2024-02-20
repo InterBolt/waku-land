@@ -17,15 +17,15 @@ export const handleKill = () => {
 
 export const handleUnexpectedExit = () => {
   cluster.on('exit', (exitedWorker) => {
-    const tag = cache[exitedWorker.process.pid];
+    const WAKU_TAG = cache[exitedWorker.process.pid];
     delete cache[exitedWorker.process.pid];
-    console.log(`Worker with tag=${tag} died. Will restart if necessary.`);
+    console.log(`Worker with tag=${WAKU_TAG} died. Will restart if necessary.`);
     // The event handler might is async and its order not guaranteed.
     // So it's possible that the worker is already restarted by the time this line is executed.
-    if (Object.values(cache).includes(tag)) {
+    if (Object.values(cache).includes(WAKU_TAG)) {
       return;
     }
-    spawn(tag);
+    spawn({ WAKU_TAG });
   });
 };
 
@@ -37,12 +37,12 @@ export const kill = () => {
   }
 };
 
-export const spawn = (tag) => {
+export const spawn = (env) => {
   if (!cluster.isPrimary) {
     throw new Error(`A worker can't spawn another worker`);
   }
-  const spawnedWorker = cluster.fork({ WAKU_TAG: tag });
-  cache[spawnedWorker.process.pid] = tag;
+  const spawnedWorker = cluster.fork(env);
+  cache[spawnedWorker.process.pid] = env.WAKU_TAG;
   return spawnedWorker;
 };
 

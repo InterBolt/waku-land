@@ -25,11 +25,11 @@ jobs:
           pnpm install --frozen-lockfile
       - name: Build
         run: |
-          pnpm run cd:build
+          npx tsx scripts/pull.ts && waku build
       - name: Deploy Fly
         # load env vars, install deps, create fly.toml, and deploy
         run: |
           flyctl deploy --local-only -t "${{ secrets.FLY_ACCESS_TOKEN }}"
       - name: DNS
         run: |
-          pnpm run cd:dns
+          npx tsx scripts/dns.ts

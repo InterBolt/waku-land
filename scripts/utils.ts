@@ -2,13 +2,6 @@ import appRootPath from 'app-root-path';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-// lol
-export const THINGS_THAT_MIGHT_CHANGE = {
-  ssrFlag: '--with-ssr',
-  binCommand: 'waku',
-  ipv4: '149.248.203.169',
-};
-
 export type Deployment = {
   dir: string;
   path: string;
