@@ -8,7 +8,7 @@ dist
 deployments.json
 deployments/
 reference.txt
-waku/
+waku
 
 .secrets*
 .secrets

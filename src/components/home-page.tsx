@@ -12,5 +12,10 @@ export const HomePage = ({
   if (!deployment) throw new Error('Deployment not found');
   const url = getUrl(deployment);
   const sourceUrl = getSourceUrl(deployment);
-  return <HomeScreen url={url} sourceUrl={sourceUrl} deployment={deployment} />;
+  return (
+    <>
+      <title>Waku Land</title>
+      <HomeScreen url={url} sourceUrl={sourceUrl} deployment={deployment} />
+    </>
+  );
 };
