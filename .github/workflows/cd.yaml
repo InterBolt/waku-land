@@ -25,7 +25,7 @@ jobs:
           pnpm install --frozen-lockfile
       - name: Build
         run: |
-          npx tsx scripts/pull.ts && waku build
+          npx tsx scripts/pull.ts && node_modules/.bin/waku build
       - name: Deploy Fly
         # load env vars, install deps, create fly.toml, and deploy
         run: |
