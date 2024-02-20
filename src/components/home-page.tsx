@@ -1,6 +1,5 @@
 import deployments from '../../deployments.json';
 import { HomeScreen } from './ClientComponents.js';
-import Seo from './Seo.js';
 import { getSourceUrl, getUrl } from './utils.js';
 
 export const HomePage = ({
@@ -14,9 +13,6 @@ export const HomePage = ({
   const url = getUrl(deployment);
   const sourceUrl = getSourceUrl(deployment);
   return (
-    <>
-      <Seo />
-      <HomeScreen url={url} sourceUrl={sourceUrl} deployment={deployment} />
-    </>
+    <HomeScreen url={url} sourceUrl={sourceUrl} deployment={deployment} />
   );
 };
