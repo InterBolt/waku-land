@@ -32,6 +32,8 @@ This uses NodeJS's [cluster module](https://nodejs.org/api/cluster.html) to spaw
 pnpm run dev
 ```
 
+Open the site at **[http://localhost:3001](http://localhost:3001)**
+
 ## Use a fork of Waku instead
 
 > This is useful if you are experimenting with custom examples on your own Waku fork. 
