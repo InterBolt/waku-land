@@ -1,5 +1,6 @@
 import deployments from '../../deployments.json';
 import { HomeScreen } from './ClientComponents.js';
+import Seo from './Seo.js';
 import { getSourceUrl, getUrl } from './utils.js';
 
 export const HomePage = ({
@@ -14,7 +15,7 @@ export const HomePage = ({
   const sourceUrl = getSourceUrl(deployment);
   return (
     <>
-      <title>Waku Land</title>
+      <Seo />
       <HomeScreen url={url} sourceUrl={sourceUrl} deployment={deployment} />
     </>
   );
