@@ -7,9 +7,17 @@ type RootLayoutProps = { children: ReactNode };
 export const RootLayout = async ({ children }: RootLayoutProps) => {
   return (
     <div id="__waku" className="box-border font-['Nunito']">
-      <main className="box-border flex items-center justify-center lg:min-h-svh">
+      <main className="box-border relative flex items-center justify-center lg:min-h-svh">
+        <div className="absolute z-50 right-4 top-4">
+          <a href="https://github.com/interbolt/waku-land">
+            <img
+              className="w-8 h-8 stroke-white fill-white"
+              src="/images/github-icon.svg"
+            />
+          </a>
+        </div>
         <div className="flex flex-col w-full min-h-[100vh] box-border">
-          <div className="box-border relative py-4 md:py-16 daisy-hero bg-base-200">
+          <div className="box-border relative py-8 md:py-16 daisy-hero bg-base-200">
             <div className="box-border text-center daisy-hero-content">
               <div className="box-border max-w-full md:max-w-4xl">
                 <h1 className="text-5xl font-bold md:text-6xl">Waku Land</h1>
