@@ -30,23 +30,22 @@ export const getVersions = async (wakuRepoDir: string) => {
       'utf-8'
     )
   );
-
-  // save a lil typing.
-  const devProdPeerOrOverride = (key: string) =>
-    repoPkgJSON['pnpm']?.['overrides']?.[key] ||
-    repoPkgJSON.dependencies?.[key] ||
-    repoPkgJSON.devDependencies?.[key] ||
-    repoPkgJSON.peerDependencies?.[key];
+  const pickDep = (pkgJson: any, key: string) =>
+    pkgJson['pnpm']?.['overrides']?.[key] ||
+    pkgJson.dependencies?.[key] ||
+    pkgJson.devDependencies?.[key] ||
+    pkgJson.peerDependencies?.[key];
 
   const waku = publishedPkgJSON.version;
-  const vite = devProdPeerOrOverride('vite');
-  const react = devProdPeerOrOverride('react');
-  const reactDom = devProdPeerOrOverride('react-dom');
-  const reactServerDomWebpack = devProdPeerOrOverride(
+  const vite = pickDep(publishedPkgJSON, 'vite');
+  const react = pickDep(publishedPkgJSON, 'react');
+  const reactDom = pickDep(publishedPkgJSON, 'react-dom');
+  const reactServerDomWebpack = pickDep(
+    publishedPkgJSON,
     'react-server-dom-webpack'
   );
-  const reactTypes = devProdPeerOrOverride('@types/react');
-  const reactDomTypes = devProdPeerOrOverride('@types/react-dom');
+  const reactTypes = pickDep(repoPkgJSON, '@types/react');
+  const reactDomTypes = pickDep(repoPkgJSON, '@types/react-dom');
 
   return {
     vite,
