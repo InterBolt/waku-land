@@ -50,12 +50,14 @@ export const startWebsite = () => {
 export const startDeployment = (dir) => {
   const deployments = getDeployments();
   const deployment = deployments.find((deployment) => deployment.dir == dir);
+  process.chdir(join(process.cwd(), deployment.path));
+
   // Found this in the original waku code.
   // fwiw it threw a type error which is suspicious
   // but maybe it's fine, either way idc much.
   express.static.mime.default_type = '';
 
-  const distDir = join(process.cwd(), deployment.path, 'dist');
+  const distDir = join(process.cwd(), 'dist');
   const publicDir = join(distDir, 'public');
   const app = express();
 
