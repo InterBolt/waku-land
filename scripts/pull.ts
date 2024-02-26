@@ -178,7 +178,14 @@ const createExamples = async () => {
   const pathToFinalWaku = join(appRootPath.path, 'waku');
   logger.warn(`Overwriting waku in 2 seconds...`);
   await new Promise((resolve) => setTimeout(resolve, 2000));
-  await cp(pathToTmpWaku, join(appRootPath.path, 'waku'), {
+  // Useful for local dev, where the waku package from the previous run is still there
+  if (existsSync(pathToFinalWaku)) {
+    await rm(pathToFinalWaku, {
+      recursive: true,
+      force: true,
+    });
+  }
+  await cp(pathToTmpWaku, pathToFinalWaku, {
     recursive: true,
     force: true,
   });
