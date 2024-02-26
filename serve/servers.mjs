@@ -3,8 +3,10 @@ import { join } from 'node:path';
 import express from 'express';
 import { unstable_connectMiddleware as connectMiddleware } from 'waku/prd';
 import morgan from 'morgan';
+import { exec, execSync } from 'node:child_process';
 import { getDeployments } from './utils.mjs';
 import { createProxyMiddleware } from 'http-proxy-middleware';
+import { readFileSync } from 'node:fs';
 
 const PORT_PROXY = 3000;
 const WEBSITE_PORT = 5000;
@@ -47,10 +49,32 @@ export const startWebsite = () => {
   });
 };
 
+const startViaPkgCmd = (cwd, port) => {
+  try {
+    console.info(
+      `\x1b[32m%s\x1b[0m`,
+      `Waku example will use a custom entry via \`npm run start\` in its local dir is running on port: ${port}`
+    );
+    execSync(`PORT=${port} pnpm run start`, {
+      cwd,
+      stdio: 'inherit',
+      encoding: 'utf-8',
+    });
+  } catch (err) {
+    console.error(err);
+    process.exit(1);
+  }
+};
+
 export const startDeployment = (dir) => {
   const deployments = getDeployments();
   const deployment = deployments.find((deployment) => deployment.dir == dir);
-  process.chdir(join(process.cwd(), deployment.path));
+  const cwd = join(process.cwd(), deployment.path);
+  process.chdir(cwd);
+
+  if (!!deployment.entryServer) {
+    return startViaPkgCmd(cwd, deployment.servicePort);
+  }
 
   // Found this in the original waku code.
   // fwiw it threw a type error which is suspicious

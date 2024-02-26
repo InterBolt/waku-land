@@ -6,6 +6,7 @@ export type Deployment = {
   dir: string;
   path: string;
   ssr: boolean;
+  entryServer: string | null;
   servicePort: number;
   flyName: string;
   flyUrl: string;
