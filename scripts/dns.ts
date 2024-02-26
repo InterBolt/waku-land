@@ -87,7 +87,7 @@ const utilFormatDnsCreateRecord = (
     content: deployment.ipv4,
     name: `${deployment.flyName}`,
     type: 'A',
-    proxied: false,
+    proxied: true,
     comment: DNS_TAG,
     ttl: 300,
   };
