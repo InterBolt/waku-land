@@ -1,3 +1,4 @@
 WAKU_REPO="https://github.com/dai-shi/waku.git"
+WAKU_CHECKOUT="main"
 CLOUDFLARE_API_TOKEN=
 CLOUDFLARE_ZONE_ID=
