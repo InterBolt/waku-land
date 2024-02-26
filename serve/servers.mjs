@@ -72,7 +72,7 @@ export const startDeployment = (dir) => {
   const cwd = join(process.cwd(), deployment.path);
   process.chdir(cwd);
 
-  if (!!deployment.entryServer) {
+  if (deployment.usePkgCmd) {
     return startViaPkgCmd(cwd, deployment.servicePort);
   }
 
