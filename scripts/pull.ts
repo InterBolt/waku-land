@@ -21,8 +21,9 @@ if (skipIfExists && existsSync(join(appRootPath.path, 'deployments.json'))) {
 
 const exec = promisify(execWithCallback);
 
+const WAKU_CHECKOUT = ENV.WAKU_CHECKOUT || 'main';
 const CANONICAL_REPO = 'https://github.com/dai-shi/waku.git';
-const WAKU_REPO = ENV.WAKU_REPO || 'https://github.com/dai-shi/waku.git';
+const WAKU_REPO = ENV.WAKU_REPO || CANONICAL_REPO;
 const TMP_DIR = '.temp-waku';
 const PATH_TMP = join(appRootPath.path, TMP_DIR);
 const PATH_DEPLOYMENTS = join(appRootPath.path, 'deployments');
@@ -109,9 +110,7 @@ const generateDeploymentsArtifact = async () => {
     const usesWakuCli = packageJson.scripts.start.startsWith(`waku `);
     const ssr = packageJson.scripts.start.includes(` --with-ssr`);
     if (!usesWakuCli) {
-      logger.warn(
-        `The example ${dir} does not use waku cli, skipping it from serving`
-      );
+      logger.warn(`The example ${dir} will not use waku cli`);
     }
     // create a regex that matches a valid subdomain
     const flyNameRegex = /^[a-z0-9-]+$/;
@@ -155,8 +154,12 @@ const createExamples = async () => {
     trimmed: false,
   });
 
-  logger.info(`Cloning waku repository...`);
+  logger.info(`Cloning ${WAKU_REPO}...`);
   await git.clone(WAKU_REPO);
+  git.cwd(join(PATH_TMP, 'waku'));
+
+  logger.info(`Checking out ${WAKU_CHECKOUT} branch...`);
+  await git.checkout(WAKU_CHECKOUT);
 
   const pathToTmpWaku = join(TMP_DIR, 'waku');
   const pathToWakuExamples = join(TMP_DIR, 'waku', 'examples');
