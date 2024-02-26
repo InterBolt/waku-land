@@ -96,16 +96,6 @@ const buildEachExample = async () => {
   }
 };
 
-const getFirstFileThatExists = (...filePaths: string[]) => {
-  let found = null;
-  for (const filePath of filePaths) {
-    if (existsSync(filePath)) {
-      found = filePath;
-    }
-  }
-  return found;
-};
-
 const generateDeploymentsArtifact = async () => {
   const dirs = await readdir(PATH_DEPLOYMENTS);
   const deployments: Array<Deployment> = [];
@@ -118,22 +108,10 @@ const generateDeploymentsArtifact = async () => {
     );
     const usesWakuCli = packageJson.scripts.start.startsWith(`waku `);
     const ssr = packageJson.scripts.start.includes(` --with-ssr`);
-    let entryServer = null;
     if (!usesWakuCli) {
       logger.warn(
         `The example ${dir} does not use waku cli, skipping it from serving`
       );
-      entryServer = getFirstFileThatExists(
-        join(pathToDeploymentExample, 'start.ts'),
-        join(pathToDeploymentExample, 'server.ts'),
-        join(pathToDeploymentExample, 'start.js'),
-        join(pathToDeploymentExample, 'server.js')
-      );
-      if (!entryServer) {
-        logger.warn(
-          `The example ${dir} does not use waku cli, and an entry server file could not be found. Skipping...`
-        );
-      }
     }
     // create a regex that matches a valid subdomain
     const flyNameRegex = /^[a-z0-9-]+$/;
@@ -147,7 +125,7 @@ const generateDeploymentsArtifact = async () => {
       dir,
       path: join('deployments', dir),
       ssr,
-      entryServer,
+      usePkgCmd: !usesWakuCli,
       flyName: flyName,
       flyUrl: `https://${flyName}.waku.land`,
       ipv4: '149.248.203.169',

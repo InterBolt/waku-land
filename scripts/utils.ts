@@ -6,7 +6,7 @@ export type Deployment = {
   dir: string;
   path: string;
   ssr: boolean;
-  entryServer: string | null;
+  usePkgCmd: boolean;
   servicePort: number;
   flyName: string;
   flyUrl: string;
