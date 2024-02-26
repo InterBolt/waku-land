@@ -3,7 +3,7 @@
 import { clsx } from 'clsx';
 import deployments from '../../deployments.json';
 import { useWindowSize } from 'usehooks-ts';
-import { useState } from 'react';
+import { use, useCallback, useEffect, useState } from 'react';
 import { getSourceUrl, getUrl } from './utils.js';
 
 type Deployment = (typeof deployments)[0];
@@ -20,6 +20,22 @@ export const HomeScreen = ({
   const [deployment, setDeployment] = useState(initialDeployment);
   const [sourceUrl, setSourceUrl] = useState(initialSourceUrl);
   const [url, setUrl] = useState(initialUrl);
+
+  useEffect(() => {
+    document.getElementById('content')?.scrollIntoView();
+  }, []);
+
+  const handleChangeDeployment = useCallback((nextDeployment: Deployment) => {
+    setSourceUrl(getSourceUrl(nextDeployment));
+    setUrl(getUrl(nextDeployment));
+    setDeployment(nextDeployment);
+    let nextUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
+    const nextSearchParams = new URLSearchParams(window.location.search);
+    nextSearchParams.set('deployment', nextDeployment.flyName);
+    nextUrl += `?${nextSearchParams.toString()}`;
+    window.history.pushState({ path: nextUrl }, '', nextUrl);
+  }, []);
+
   return (
     <div className="box-border min-h-[100vh] flex flex-col gap-4 p-4 md:flex-row">
       <div className="flex-col hidden md:flex shrink">
@@ -30,12 +46,7 @@ export const HomeScreen = ({
                 className={clsx(
                   d.flyName === deployment.flyName ? 'daisy-active' : ''
                 )}
-                onClick={() => {
-                  setSourceUrl(getSourceUrl(d));
-                  setUrl(getUrl(d));
-                  setDeployment(d);
-                  window.open('#content', '_self');
-                }}
+                onClick={() => handleChangeDeployment(d)}
               >
                 {`examples/${d.dir}`}
               </button>
@@ -67,15 +78,7 @@ export const HomeScreen = ({
                       className={clsx(
                         d.flyName === deployment.flyName ? 'daisy-active' : ''
                       )}
-                      onClick={() => {
-                        setSourceUrl(getSourceUrl(d));
-                        setUrl(getUrl(d));
-                        setDeployment(d);
-                        window.open('#content', '_self');
-                        console.log(
-                          document.getElementById('mobile_picker') as any
-                        );
-                      }}
+                      onClick={() => handleChangeDeployment(d)}
                     >{`examples/${d.dir}`}</button>
                   </li>
                 ))}
